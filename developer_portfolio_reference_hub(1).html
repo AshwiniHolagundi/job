@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevRef - Developer Reference Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full flex flex-col font-sans bg-slate-900 text-slate-100 selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-30 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-4">
+                
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 font-bold text-xl">
+                        <i class="fa-solid me-0.5 fa-bookmark"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-none text-white tracking-tight">DevRef</h1>
+                        <p class="text-xs text-slate-400 mt-0.5">Reference & Resource Hub</p>
+                    </div>
+                </div>
+
+                <!-- Tabs (Desktop) -->
+                <nav class="hidden md:flex items-center space-x-1" id="nav-tabs">
+                    <!-- Dynamic tabs rendered by JS -->
+                </nav>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-2 shrink-0">
+                    <button id="add-btn" onclick="openAddModal()" class="px-3.5 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-sm flex items-center gap-2 transition shadow-md shadow-cyan-600/20">
+                        <i class="fa-solid fa-plus"></i>
+                        <span class="hidden sm:inline">Add Link</span>
+                    </button>
+                    <button onclick="openJsonModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700" title="Manage / Export / Import JSON">
+                        <i class="fa-solid fa-file-code"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation Tabs -->
+            <div class="md:hidden flex overflow-x-auto py-2 space-x-1 border-t border-slate-800 scrollbar-none" id="mobile-nav-tabs">
+                <!-- Dynamic mobile tabs -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
+        
+        <!-- Controls Bar: Search & Filtering -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+            
+            <!-- Tab Title & Count -->
+            <div class="flex items-center space-x-3">
+                <h2 id="current-tab-title" class="text-xl font-bold text-white tracking-wide">Internships</h2>
+                <span id="item-count-badge" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-800 text-cyan-400 border border-cyan-500/30">0 links</span>
+            </div>
+
+            <!-- Search input -->
+            <div class="relative flex-1 max-w-md">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="search-input" placeholder="Search by title, org, or tags..." oninput="handleSearch()" class="w-full pl-10 pr-4 py-2 bg-slate-800/80 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
+            </div>
+        </div>
+
+        <!-- Links Grid -->
+        <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <!-- Cards populated dynamically -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden flex-1 flex flex-col items-center justify-center py-16 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 text-2xl mb-4">
+                <i class="fa-regular fa-folder-open"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-300 mb-1">No references found</h3>
+            <p class="text-sm text-slate-500 max-w-sm mb-4">No bookmarks added to this section yet, or none match your search query.</p>
+            <button onclick="openAddModal()" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium transition">
+                Add New Reference
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/50 py-4 text-center text-xs text-slate-500">
+        <p>DevRef &copy; 2026 • Local-first Storage & Instant JSON Export</p>
+    </footer>
+
+    <!-- ADD / EDIT MODAL -->
+    <div id="item-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+                <h3 id="modal-title" class="text-lg font-bold text-white">Add Reference</h3>
+                <button onclick="closeItemModal()" class="text-slate-400 hover:text-white transition text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <form id="item-form" onsubmit="saveItem(event)" class="p-6 space-y-4 overflow-y-auto">
+                <input type="hidden" id="form-item-id">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Target Section</label>
+                    <select id="form-section" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                        <option value="internships">Internships</option>
+                        <option value="resume">Resume</option>
+                        <option value="jobs">Jobs</option>
+                        <option value="projects">Projects</option>
+                        <option value="skills">Skills</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Title / Name *</label>
+                    <input type="text" id="form-title" required placeholder="e.g. Frontend Engineering Internship" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Organization / Channel</label>
+                        <input type="text" id="form-org" placeholder="e.g. Stripe / Fireship" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Category / Tag</label>
+                        <input type="text" id="form-category" placeholder="e.g. Youtube, Portal, Article" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">URL / Link *</label>
+                    <input type="url" id="form-url" required placeholder="https://..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Image / Thumbnail URL</label>
+                    <input type="url" id="form-image" placeholder="https://... (Optional cover image)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Brief Notes / Description</label>
+                    <textarea id="form-notes" rows="2" placeholder="Quick info or reminder about this link..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500"></textarea>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeItemModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium transition">Save Reference</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JSON MANAGER MODAL (EXPORT / IMPORT / RESET) -->
+    <div id="json-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-code text-cyan-400"></i> JSON Data Manager
+                </h3>
+                <button onclick="closeJsonModal()" class="text-slate-400 hover:text-white transition text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Browser security prevents direct server file writing. Manage your data in-browser or download JSON backups to sync directly with your repository.
+                </p>
+
+                <!-- Export Section -->
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-800">
+                    <h4 class="text-sm font-semibold text-slate-200 mb-1">1. Export Active Section Data</h4>
+                    <p class="text-xs text-slate-400 mb-3">Download your current <span id="export-tab-name" class="text-cyan-400 font-semibold"></span> bookmarks as a <code class="text-cyan-300">.json</code> file.</p>
+                    <button onclick="exportCurrentCategoryJson()" class="w-full py-2 px-4 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> Download <span id="export-file-label">data.json</span>
+                    </button>
+                </div>
+
+                <!-- Import Section -->
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-800">
+                    <h4 class="text-sm font-semibold text-slate-200 mb-1">2. Import External JSON File</h4>
+                    <p class="text-xs text-slate-400 mb-3">Load a local `.json` file to merge or replace current items.</p>
+                    <input type="file" id="json-file-input" accept=".json" class="hidden" onchange="importJsonFile(event)">
+                    <button onclick="document.getElementById('json-file-input').click()" class="w-full py-2 px-4 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium text-sm transition flex items-center justify-center gap-2 border border-slate-600">
+                        <i class="fa-solid fa-upload"></i> Choose & Import JSON File
+                    </button>
+                </div>
+
+                <!-- Reset Section -->
+                <div class="flex justify-between items-center pt-2">
+                    <button onclick="resetToDefaultData()" class="text-xs text-rose-400 hover:text-rose-300 font-medium transition flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i> Restore Initial Sample Data
+                    </button>
+                    <button onclick="closeJsonModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPLICATION SCRIPT -->
+    <script>
+        // Default Sample Data (Fallback)
+        const DEFAULT_DATA = {
+            internships: [
+                {
+                    id: "int-1",
+                    title: "Google Software Engineering Internships",
+                    org: "Google Careers",
+                    url: "https://www.google.com/about/careers/applications/jobs/results/?q=intern",
+                    image: "https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?auto=format&fit=crop&w=600&q=80",
+                    notes: "Official portal for summer and fall engineering internship openings.",
+                    category: "Portal",
+                    date: "2026-01-15"
+                },
+                {
+                    id: "int-2",
+                    title: "Microsoft University Internship Program",
+                    org: "Microsoft",
+                    url: "https://careers.microsoft.com/students/us/en",
+                    image: "https://images.unsplash.com/photo-1642132652859-3ef5a1048fd1?auto=format&fit=crop&w=600&q=80",
+                    notes: "Explore technical internship roles in cloud, AI, and systems.",
+                    category: "Careers",
+                    date: "2026-02-01"
+                }
+            ],
+            resume: [
+                {
+                    id: "res-1",
+                    title: "Jake's Resume Latex Template (Overleaf)",
+                    org: "GitHub / Overleaf",
+                    url: "https://www.overleaf.com/latex/templates/jakes-resume/syzsqfdpfkjc",
+                    image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=600&q=80",
+                    notes: "Industry standard minimalist LaTeX resume template popular for SWE applications.",
+                    category: "Template",
+                    date: "2026-01-10"
+                },
+                {
+                    id: "res-2",
+                    title: "How to write a Tech Resume - Fireship",
+                    org: "YouTube",
+                    url: "https://www.youtube.com/watch?v=17C32-vLnoI",
+                    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80",
+                    notes: "Quick, concise guide on crafting ATS-friendly software engineering resumes.",
+                    category: "Video",
+                    date: "2026-02-10"
+                }
+            ],
+            jobs: [
+                {
+                    id: "job-1",
+                    title: "Simplify Jobs - Early Career / New Grad DB",
+                    org: "Simplify.jobs",
+                    url: "https://simplify.jobs",
+                    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=600&q=80",
+                    notes: "Real-time tech job search and automated application assistant.",
+                    category: "Job Board",
+                    date: "2026-02-12"
+                }
+            ],
+            projects: [
+                {
+                    id: "proj-1",
+                    title: "Build a Full-Stack Next.js 14 App",
+                    org: "YouTube / Vercel",
+                    url: "https://nextjs.org/learn",
+                    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80",
+                    notes: "Step by step official Next.js App Router and Server Actions tutorial.",
+                    category: "Tutorial",
+                    date: "2026-01-20"
+                }
+            ],
+            skills: [
+                {
+                    id: "skill-1",
+                    title: "System Design Primer",
+                    org: "GitHub (donnemartin)",
+                    url: "https://github.com/donnemartin/system-design-primer",
+                    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
+                    notes: "Comprehensive guide to large-scale system design and interview prep.",
+                    category: "Documentation",
+                    date: "2026-01-05"
+                }
+            ]
+        };
+
+        const SECTIONS = [
+            { id: 'internships', name: 'Internships', icon: 'fa-user-gradient' },
+            { id: 'resume', name: 'Resume', icon: 'fa-file-lines' },
+            { id: 'jobs', name: 'Jobs', icon: 'fa-briefcase' },
+            { id: 'projects', name: 'Projects', icon: 'fa-code' },
+            { id: 'skills', name: 'Skills', icon: 'fa-graduation-cap' }
+        ];
+
+        let currentTab = 'internships';
+        let storeData = {};
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStoreData();
+            renderNavTabs();
+            switchTab('internships');
+        });
+
+        // LOCAL STORAGE MANAGEMENT
+        function loadStoreData() {
+            const saved = localStorage.getItem('devref_store_data');
+            if (saved) {
+                try {
+                    storeData = JSON.parse(saved);
+                } catch (e) {
+                    storeData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                }
+            } else {
+                storeData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                saveStoreData();
+            }
+        }
+
+        function saveStoreData() {
+            localStorage.setItem('devref_store_data', JSON.stringify(storeData));
+        }
+
+        // NAVIGATION TABS RENDER
+        function renderNavTabs() {
+            const desktopNav = document.getElementById('nav-tabs');
+            const mobileNav = document.getElementById('mobile-nav-tabs');
+
+            desktopNav.innerHTML = SECTIONS.map(tab => `
+                <button onclick="switchTab('${tab.id}')" id="tab-btn-${tab.id}" class="px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 border border-transparent">
+                    <span>${tab.name}</span>
+                </button>
+            `).join('');
+
+            mobileNav.innerHTML = SECTIONS.map(tab => `
+                <button onclick="switchTab('${tab.id}')" id="mobile-tab-btn-${tab.id}" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition">
+                    ${tab.name}
+                </button>
+            `).join('');
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+
+            // Update Desktop tab styles
+            SECTIONS.forEach(s => {
+                const btn = document.getElementById(`tab-btn-${s.id}`);
+                const mobBtn = document.getElementById(`mobile-tab-btn-${s.id}`);
+                
+                if (s.id === tabId) {
+                    btn.className = "px-3.5 py-2 rounded-lg text-sm font-medium transition bg-slate-800 text-cyan-400 border border-slate-700 shadow-sm";
+                    if (mobBtn) mobBtn.className = "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-slate-800 text-cyan-400 border border-slate-700";
+                } else {
+                    btn.className = "px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent";
+                    if (mobBtn) mobBtn.className = "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-slate-400 hover:text-white";
+                }
+            });
+
+            // Update Tab Title
+            const activeSec = SECTIONS.find(s => s.id === tabId);
+            document.getElementById('current-tab-title').innerText = activeSec ? activeSec.name : tabId;
+
+            renderCards();
+        }
+
+        // CARDS RENDER
+        function renderCards() {
+            const grid = document.getElementById('cards-grid');
+            const emptyState = document.getElementById('empty-state');
+            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+            const countBadge = document.getElementById('item-count-badge');
+
+            const items = storeData[currentTab] || [];
+            
+            // Filter
+            const filtered = items.filter(item => {
+                return (item.title || '').toLowerCase().includes(searchVal) ||
+                       (item.org || '').toLowerCase().includes(searchVal) ||
+                       (item.notes || '').toLowerCase().includes(searchVal) ||
+                       (item.category || '').toLowerCase().includes(searchVal);
+            });
+
+            countBadge.innerText = `${filtered.length} link${filtered.length === 1 ? '' : 's'}`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = filtered.map(item => `
+                <div class="group bg-slate-800/70 border border-slate-800 hover:border-slate-700 rounded-xl overflow-hidden flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-950/20">
+                    
+                    <div>
+                        <!-- Card Thumbnail -->
+                        <div class="relative h-36 bg-slate-900 overflow-hidden">
+                            <img src="${item.image || 'https://placehold.co/600x300/1e293b/06b6d4?text=' + encodeURIComponent(item.org || 'Link')}" 
+                                 alt="${escapeHtml(item.title)}" 
+                                 onerror="this.src='https://placehold.co/600x300/1e293b/06b6d4?text=Reference'"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            
+                            ${item.category ? `
+                                <span class="absolute top-2.5 right-2.5 px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded bg-slate-950/80 text-cyan-300 backdrop-blur-md border border-slate-700/50">
+                                    ${escapeHtml(item.category)}
+                                </span>
+                            ` : ''}
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="p-4">
+                            <div class="text-xs font-semibold text-cyan-400 mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-building-columns text-[10px]"></i>
+                                <span class="truncate">${escapeHtml(item.org || 'Web Link')}</span>
+                            </div>
+                            <h3 class="font-bold text-sm text-slate-100 group-hover:text-cyan-300 transition line-clamp-2 leading-snug mb-2">
+                                ${escapeHtml(item.title)}
+                            </h3>
+                            ${item.notes ? `
+                                <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-3">${escapeHtml(item.notes)}</p>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Card Actions -->
+                    <div class="px-4 py-3 border-t border-slate-800/80 bg-slate-900/40 flex items-center justify-between gap-2">
+                        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-md bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white text-xs font-semibold transition flex items-center gap-1.5">
+                            <span>Visit Link</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+
+                        <div class="flex items-center space-x-1">
+                            <button onclick="editItem('${item.id}')" title="Edit Link" class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-700 transition">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="deleteItem('${item.id}')" title="Delete Link" class="p-1.5 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-700 transition">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            `).join('');
+        }
+
+        function handleSearch() {
+            renderCards();
+        }
+
+        // ADD & EDIT MODAL HANDLERS
+        function openAddModal() {
+            document.getElementById('modal-title').innerText = 'Add New Reference';
+            document.getElementById('form-item-id').value = '';
+            document.getElementById('form-section').value = currentTab;
+            document.getElementById('form-title').value = '';
+            document.getElementById('form-org').value = '';
+            document.getElementById('form-category').value = '';
+            document.getElementById('form-url').value = '';
+            document.getElementById('form-image').value = '';
+            document.getElementById('form-notes').value = '';
+            document.getElementById('item-modal').classList.remove('hidden');
+        }
+
+        function editItem(id) {
+            const item = storeData[currentTab].find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('modal-title').innerText = 'Edit Reference';
+            document.getElementById('form-item-id').value = item.id;
+            document.getElementById('form-section').value = currentTab;
+            document.getElementById('form-title').value = item.title || '';
+            document.getElementById('form-org').value = item.org || '';
+            document.getElementById('form-category').value = item.category || '';
+            document.getElementById('form-url').value = item.url || '';
+            document.getElementById('form-image').value = item.image || '';
+            document.getElementById('form-notes').value = item.notes || '';
+            document.getElementById('item-modal').classList.remove('hidden');
+        }
+
+        function closeItemModal() {
+            document.getElementById('item-modal').classList.add('hidden');
+        }
+
+        function saveItem(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('form-item-id').value;
+            const targetSection = document.getElementById('form-section').value;
+            
+            const newItem = {
+                id: id || `${targetSection.substring(0,3)}-${Date.now()}`,
+                title: document.getElementById('form-title').value.trim(),
+                org: document.getElementById('form-org').value.trim(),
+                category: document.getElementById('form-category').value.trim(),
+                url: document.getElementById('form-url').value.trim(),
+                image: document.getElementById('form-image').value.trim(),
+                notes: document.getElementById('form-notes').value.trim(),
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            // Remove from existing array if editing
+            if (id) {
+                Object.keys(storeData).forEach(sec => {
+                    storeData[sec] = storeData[sec].filter(i => i.id !== id);
+                });
+            }
+
+            // Ensure array exists and push
+            if (!storeData[targetSection]) storeData[targetSection] = [];
+            storeData[targetSection].unshift(newItem);
+
+            saveStoreData();
+            closeItemModal();
+            switchTab(targetSection);
+        }
+
+        function deleteItem(id) {
+            if (!confirm('Are you sure you want to delete this bookmark?')) return;
+            storeData[currentTab] = storeData[currentTab].filter(i => i.id !== id);
+            saveStoreData();
+            renderCards();
+        }
+
+        // JSON EXPORT & IMPORT MANAGER
+        function openJsonModal() {
+            const label = document.getElementById('export-tab-name');
+            const fileLabel = document.getElementById('export-file-label');
+            label.innerText = currentTab.toUpperCase();
+            fileLabel.innerText = `${currentTab}.json`;
+            document.getElementById('json-modal').classList.remove('hidden');
+        }
+
+        function closeJsonModal() {
+            document.getElementById('json-modal').classList.add('hidden');
+        }
+
+        function exportCurrentCategoryJson() {
+            const dataToExport = storeData[currentTab] || [];
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `${currentTab}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importJsonFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (Array.isArray(parsed)) {
+                        storeData[currentTab] = parsed;
+                        saveStoreData();
+                        renderCards();
+                        alert(`Successfully imported ${parsed.length} items into ${currentTab.toUpperCase()}!`);
+                        closeJsonModal();
+                    } else {
+                        alert('Invalid JSON format. Expected an array of objects.');
+                    }
+                } catch (err) {
+                    alert('Error parsing JSON file. Please ensure it is valid JSON.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetToDefaultData() {
+            if (confirm('Reset all saved references back to initial sample links?')) {
+                storeData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                saveStoreData();
+                renderCards();
+                closeJsonModal();
+            }
+        }
+
+        // Helper to prevent HTML injection
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
